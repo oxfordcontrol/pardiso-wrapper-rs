@@ -1,19 +1,51 @@
 #![allow(clippy::upper_case_acronyms)]
 
-pub mod enums;
+//! # PARDISO Wrapper for Rust
+//!
+//! This crate dynamically loads the PARDISO sparse solver library and provides a safe
+//! Rust interface.  It supports either MKL or Panua Pardiso backends through feature flags:
+//!
+//! - `mkl`: Intel MKL implementation (x86_64 only)
+//! - `panua`: Panua implementation
+//!
+//! Both options are supported via the common [`PardisoInterface`] trait.
+//!
+//! ### MKL Pardiso
+//!
+//! To enable dynamic linking to [`MKL Pardiso`](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/),
+//! the MKL Pardiso libary (e.g. `libmkl_rt.so`) must be on the system library path
+//! (e.g. on `LD_LIBRARY_PATH` on Linux).    Alternatively, set the `MKLROOT` environment
+//! variable to the root of the MKL installation or `MKL_PARDISO_PATH` to the location
+//! of the library.  
+//!
+//! ### Panua Pardiso
+//!
+//! To enable dynamic linking to [`Panua Pardiso`](https://panua.ch/pardiso/),
+//! the Panua Pardiso library (e.g. `libpardiso.so`) must be on the system library path
+//! (e.g. on `LD_LIBRARY_PATH` on Linux).  Alternatively, set the `PARDISO_PATH` environment
+//! variable to the location of the library.
+//!
+//! Panua Pardiso is a commercial solver and requires a separate license.
+//!
+//! ## Example
+//! ```rust, ignore
+#![doc = include_str!("../examples/symmetric.rs")]
+//! ```
+
+mod enums;
 pub use enums::*;
-pub mod error_types;
+mod error_types;
 pub use error_types::*;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "panua")]{
-        pub mod panua;
+        mod panua;
         pub use panua::PanuaPardisoSolver;
 }}
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "mkl")]{
-        pub mod mkl;
+        mod mkl;
         pub use mkl::MKLPardisoSolver;
 }}
 

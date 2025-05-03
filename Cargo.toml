@@ -18,9 +18,20 @@ thiserror = "2.0.12"
 which = "7.0.3"
 
 [features]
-default = ["panua"]
+default = []
 panua = []
 mkl = []
 
+# "docs" feature will bypass platform checks and allow the library
+# to be built for all platforms, even if mkl won't actually work
+# on non x86_64 platforms.
+docs = []
+
 [dev-dependencies]
 approx = "0.5"
+
+[[example]]
+name = "symmetric"
+path = "examples/symmetric.rs"
+required-features = ["mkl"]
+

@@ -120,8 +120,6 @@ lazy_static! {
 
 #[test]
 fn test_panua_check_fcns() {
-    let lib = PANUA_LIBRARY.as_ref().unwrap(); // Access the library
-
     // Matrix data from symmetric indefinite example
     let n: i32 = 4; // Number of equations
     let m: i32 = 3; // Number of right-hand sides

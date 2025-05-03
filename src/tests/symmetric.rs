@@ -36,12 +36,6 @@ fn test_symmetric(ps: &mut dyn crate::PardisoInterface) {
     ps.set_phase(Phase::NumFact);
     ps.pardiso(&a, &ia, &ja, &mut b, &mut x, n, m).unwrap();
 
-    println!(
-        "The matrix has {} positive and {} negative eigenvalues",
-        ps.get_num_positive_eigenvalues(),
-        ps.get_num_negative_eigenvalues()
-    );
-
     assert!(ps.get_num_positive_eigenvalues() == 3);
     assert!(ps.get_num_negative_eigenvalues() == 1);
 
