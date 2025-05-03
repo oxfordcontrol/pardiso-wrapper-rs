@@ -141,7 +141,7 @@ fn test_panua_check_fcns() {
         ja.as_ptr(),
         &mut error,
     );
-    assert_eq!(error, 0, "Matrix check failed with error code: {}", error);
+    assert_eq!(error, 0, "Matrix check failed with error code: {error}");
 
     (panua_ptrs().unwrap().pardiso_chkvec)(
         &n as *const i32,
@@ -149,7 +149,7 @@ fn test_panua_check_fcns() {
         b.as_ptr(),
         &mut error as *mut i32,
     );
-    assert_eq!(error, 0, "Vector check failed with error code: {}", error);
+    assert_eq!(error, 0, "Vector check failed with error code: {error}");
 
     (panua_ptrs().unwrap().pardiso_printstats)(
         &mtype,
@@ -162,5 +162,5 @@ fn test_panua_check_fcns() {
         &mut error,
     );
 
-    assert_eq!(error, 0, "Print stats failed with error code: {}", error);
+    assert_eq!(error, 0, "Print stats failed with error code: {error}");
 }

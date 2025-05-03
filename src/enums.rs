@@ -57,7 +57,7 @@ impl std::fmt::Display for MatrixType {
             MatrixType::RealNonsymmetric => "Real Nonsymmetric",
             MatrixType::ComplexNonsymmetric => "Complex Nonsymmetric",
         };
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 
@@ -97,7 +97,7 @@ impl std::fmt::Display for Phase {
             Phase::ReleaseLUandMNUM => "Release LU and MNUM",
             Phase::ReleaseAll => "Release All",
         };
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 

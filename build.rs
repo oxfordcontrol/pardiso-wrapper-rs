@@ -7,7 +7,7 @@ fn main() {
 
         // Skip the check when generating documentation
         if !is_docs && target_arch != "x86_64" {
-            panic!("{} build error: the `mkl` feature is only supported for x86_64.  This platform is {}.", pkg_name, target_arch);
+            panic!("{pkg_name} build error: the `mkl` feature is only supported for x86_64.  This platform is {target_arch}.");
         }
 
         if !cfg!(target_os = "windows") {
