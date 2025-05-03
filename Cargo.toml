@@ -6,9 +6,6 @@ rust-version = "1.70"
 license = "Apache-2.0"
 description = "Wrappers for MKL and Panua Pardiso dynamic libraries"
 
-# MKL requires cargo:rustc-link-lib=m
-links = "m" 
-
 [lib]
 name = "pardiso_wrapper"
 crate-type = ["rlib"]
