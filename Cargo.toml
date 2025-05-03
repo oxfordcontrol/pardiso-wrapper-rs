@@ -5,6 +5,8 @@ edition = "2021"
 rust-version = "1.70"
 license = "Apache-2.0"
 description = "Wrappers for MKL and Panua Pardiso dynamic libraries"
+categories = ["mathematics", "science"]
+keywords = ["linear", "algebra", "sparse", "matrix"]
 
 [lib]
 name = "pardiso_wrapper"
