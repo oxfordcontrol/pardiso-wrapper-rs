@@ -6,7 +6,25 @@ use lazy_static::lazy_static;
 use libloading::{Library, Symbol};
 use which::which_in;
 
+fn force_libm_linking() {
+    // this kludgy function exists to force libm linking
+    // even when building examples, which otherwise won't
+    // link to libm despite aggressive lobbying from both
+    // cargo.toml and build.rs
+    #[link(name = "m")]
+    extern "C" {
+        fn log(val: f64) -> f64;
+    }
+    // this prevents the compiler from optimizing
+    // away this otherwise useless function call
+    use std::hint::black_box;
+    black_box(unsafe { log(black_box(1.0)) });
+}
+
 pub(crate) fn get_mkl_lib_path() -> Option<std::path::PathBuf> {
+    // attempt to force libm linking
+    force_libm_linking();
+
     let libname = {
         if cfg!(target_os = "windows") {
             "libmkl_rt.dll"
@@ -108,7 +126,7 @@ lazy_static! {
 fn test_get_set_mkl_threads() {
     use crate::mkl;
 
-    let lib = MKL_LIBRARY.as_ref().unwrap(); // Access the library
+    let _lib = MKL_LIBRARY.as_ref().unwrap(); // Access the library
 
     (mkl_ptrs().unwrap().mkl_set_dynamic)(&0_i32);
 

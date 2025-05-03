@@ -46,6 +46,6 @@ fn main() {
 
     // Free solver resources
     // Unnecessary (but harmless) since Drop impl does this for you
-    ps.set_phase(crate::Phase::ReleaseAll);
+    ps.set_phase(Phase::ReleaseAll);
     ps.pardiso(&a, &ia, &ja, &mut b, &mut x, n, m).unwrap();
 }

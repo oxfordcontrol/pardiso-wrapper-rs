@@ -28,7 +28,7 @@
 //! Panua Pardiso is a commercial solver and requires a separate license.
 //!
 //! ## Example
-//! ```rust, ignore
+//! ```rust, no_test
 #![doc = include_str!("../examples/symmetric.rs")]
 //! ```
 

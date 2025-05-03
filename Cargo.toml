@@ -2,8 +2,12 @@
 name = "pardiso-wrapper"
 version = "0.1.0"
 edition = "2021"
-license = "MIT"
+rust-version = "1.70"
+license = "Apache-2.0"
 description = "Wrappers for MKL and Panua Pardiso dynamic libraries"
+
+# MKL requires cargo:rustc-link-lib=m
+links = "m" 
 
 [lib]
 name = "pardiso_wrapper"
