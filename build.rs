@@ -10,7 +10,9 @@ fn main() {
             panic!("{} build error: the `mkl` feature is only supported for x86_64.  This platform is {}.", pkg_name, target_arch);
         }
 
-        // mkl requires libm to be linked
-        println!("cargo:rustc-link-lib=m");
+        if !cfg!(target_os = "windows") {
+            // mkl requires libm on osx/linux
+            println!("cargo:rustc-link-lib=m");
+        }
     }
 }
