@@ -1,8 +1,6 @@
 # pardiso-wrapper-rs
 Rust wrapper for MKL and Panua Pardiso
 
- # PARDISO Wrapper for Rust
-
  This crate dynamically loads the PARDISO sparse solver library and provides a safe
  Rust interface.  It supports either MKL or Panua Pardiso backends through feature flags:
 
