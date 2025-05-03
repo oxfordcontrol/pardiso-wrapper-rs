@@ -53,6 +53,7 @@ cfg_if::cfg_if! {
 mod tests;
 
 #[derive(Debug)]
+#[doc(hidden)]
 pub struct PardisoData {
     pub pt: [isize; 64],
     pub iparm: [i32; 64],
@@ -162,9 +163,11 @@ pub trait PardisoInterface {
     }
 
     // MKL/Panua specific functions
-
+    #[doc(hidden)]
     fn data(&self) -> &PardisoData;
+    #[doc(hidden)]
     fn data_mut(&mut self) -> &mut PardisoData;
+
     fn name(&self) -> &'static str;
 
     fn new() -> Result<Self, PardisoError>
