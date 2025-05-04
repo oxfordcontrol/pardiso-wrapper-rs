@@ -38,3 +38,7 @@ name = "symmetric"
 path = "examples/symmetric.rs"
 required-features = ["mkl"]
 
+[package.metadata.docs.rs]
+features = ["mkl", "panua"]
+default-target = "x86_64-unknown-linux-gnu"
+
