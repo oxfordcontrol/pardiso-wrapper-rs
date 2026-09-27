@@ -89,14 +89,14 @@ impl PardisoInterface for MKLPardisoSolver {
     }
 
     fn get_num_threads(&self) -> Result<i32, PardisoError> {
-        Ok(MKLPardisoSolver::mkl_get_max_threads()?)
+        Ok(MKLPardisoSolver::mkl_get_max_threads_pardiso()?)
     }
 }
 
 // additional MKL specific functions
 impl MKLPardisoSolver {
     pub fn set_num_threads(&mut self, num_threads: i32) -> Result<i32, PardisoError> {
-        Ok(MKLPardisoSolver::mkl_set_num_threads_local(num_threads)?)
+        Ok(MKLPardisoSolver::mkl_set_num_threads_pardiso(num_threads)?)
     }
     pub fn mkl_set_num_threads(num_threads: i32) -> Result<i32, MKLPardisoError> {
         Ok((mkl_ptrs()?.mkl_set_num_threads)(&num_threads))
