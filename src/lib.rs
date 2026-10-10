@@ -16,7 +16,7 @@
 //! the MKL Pardiso libary (e.g. `libmkl_rt.so`) must be on the system library path
 //! (e.g. on `LD_LIBRARY_PATH` on Linux).    Alternatively, set the `MKLROOT` environment
 //! variable to the root of the MKL installation or `MKL_PARDISO_PATH` to the location
-//! of the library.  
+//! of the library. On Windows, the runtime DLL is named `mkl_rt.dll` (or `mkl_rt.<version>.dll`) and is installed in `MKLROOT\bin`.
 //!
 //! ### Panua Pardiso
 //!

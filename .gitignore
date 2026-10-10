@@ -1,3 +1,5 @@
 .vscode
+.codex
+.kilo
 target
 Cargo.lock

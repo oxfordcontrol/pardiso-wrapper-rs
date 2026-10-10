@@ -4,6 +4,7 @@ use super::ffi::*;
 use crate::{dylib_path_env, MKLPardisoError};
 use lazy_static::lazy_static;
 use libloading::{Library, Symbol};
+#[cfg(not(target_os = "windows"))]
 use which::which_in;
 
 cfg_if::cfg_if! {
@@ -30,23 +31,83 @@ cfg_if::cfg_if! {
 }
 
 pub(crate) fn get_mkl_lib_path() -> Option<std::path::PathBuf> {
-    // attempt to force libm linking
     force_libm_linking();
 
-    let libname = {
-        if cfg!(target_os = "windows") {
-            "libmkl_rt.dll"
-        } else if cfg!(target_os = "macos") {
-            "libmkl_rt.dylib"
-        } else {
-            "libmkl_rt.so"
+    #[cfg(target_os = "windows")]
+    {
+        get_windows_mkl_lib_path()
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        get_unix_mkl_lib_path()
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn get_windows_mkl_lib_path() -> Option<std::path::PathBuf> {
+    use std::path::PathBuf;
+
+    let mut dirs: Vec<PathBuf> = std::env::var_os(dylib_path_env())
+        .map(|path| std::env::split_paths(&path).collect())
+        .unwrap_or_default();
+
+    if let Some(root) = std::env::var_os("MKLROOT") {
+        let root = PathBuf::from(root);
+        dirs.push(root.join("bin"));
+        dirs.push(root);
+    }
+    if let Some(path) = std::env::var_os("MKL_PARDISO_PATH") {
+        dirs.push(PathBuf::from(path));
+    }
+    dirs.push(std::env::current_dir().ok()?);
+
+    find_windows_mkl_lib(dirs)
+}
+
+#[cfg(target_os = "windows")]
+fn find_windows_mkl_lib(
+    dirs: impl IntoIterator<Item = std::path::PathBuf>,
+) -> Option<std::path::PathBuf> {
+    for dir in dirs {
+        let direct = dir.join("mkl_rt.dll");
+        if direct.is_file() {
+            return Some(direct);
         }
+
+        // oneMKL releases can install an ABI-versioned DLL (for example mkl_rt.2.dll).
+        let versioned = std::fs::read_dir(&dir)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(Result::ok)
+            .filter_map(|entry| {
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                let version = name
+                    .strip_prefix("mkl_rt.")?
+                    .strip_suffix(".dll")?
+                    .parse::<u32>()
+                    .ok()?;
+                entry.path().is_file().then_some((version, entry.path()))
+            })
+            .max_by_key(|(version, _)| *version);
+        if let Some((_, path)) = versioned {
+            return Some(path);
+        }
+    }
+    None
+}
+
+#[cfg(not(target_os = "windows"))]
+fn get_unix_mkl_lib_path() -> Option<std::path::PathBuf> {
+    let libname = if cfg!(target_os = "macos") {
+        "libmkl_rt.dylib"
+    } else {
+        "libmkl_rt.so"
     };
 
-    // Look first in LD_LIBRARY_PATH
-    let ld_library_path = std::env::var(dylib_path_env()).unwrap_or_else(|_| "".to_string());
-
-    // Search for libpardiso.so in LD_LIBRARY_PATH and other standard paths
+    let ld_library_path = std::env::var(dylib_path_env()).unwrap_or_default();
     if let Ok(ldpath) = which_in(
         libname,
         Some(ld_library_path),
@@ -55,21 +116,20 @@ pub(crate) fn get_mkl_lib_path() -> Option<std::path::PathBuf> {
         return Some(ldpath);
     }
 
-    // If not found, search in likely directories
-    let mkl_root = std::env::var("MKLROOT").unwrap_or_else(|_| "".to_string());
+    let mkl_root = std::env::var("MKLROOT").unwrap_or_default();
     let mkl_lib_path = if !mkl_root.is_empty() {
         let mut path = std::path::PathBuf::from(mkl_root.clone());
         path.push("lib");
         path.to_string_lossy().to_string()
     } else {
-        "".to_string()
+        String::new()
     };
 
     let search_dirs = [
-        mkl_lib_path,                                                         // $MKLROOT/lib
-        mkl_root,                                                             // $MKLROOT
-        std::env::var("MKL_PARDISO_PATH").unwrap_or_else(|_| "".to_string()), // Environment variable
-        "/opt/intel/oneapi/mkl/latest/lib".to_string(),                       // Common system path
+        mkl_lib_path,
+        mkl_root,
+        std::env::var("MKL_PARDISO_PATH").unwrap_or_default(),
+        "/opt/intel/oneapi/mkl/latest/lib".to_string(),
         "./".to_string(),
     ];
 
@@ -78,14 +138,36 @@ pub(crate) fn get_mkl_lib_path() -> Option<std::path::PathBuf> {
         .to_string_lossy()
         .to_string();
 
-    // Use which_in to search for libpardiso.so in the specified directories
-    if let Ok(path) = which_in(libname, Some(search_dirs), std::env::current_dir().ok()?) {
-        return Some(path);
-    }
-
-    None
+    which_in(libname, Some(search_dirs), std::env::current_dir().ok()?).ok()
 }
 
+#[cfg(all(test, target_os = "windows"))]
+mod windows_path_tests {
+    use super::find_windows_mkl_lib;
+
+    #[test]
+    fn finds_unversioned_and_versioned_dlls() {
+        let dir = std::env::temp_dir().join(format!(
+            "pardiso-wrapper-mkl-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir(&dir).unwrap();
+
+        let versioned = dir.join("mkl_rt.2.dll");
+        std::fs::write(&versioned, []).unwrap();
+        assert_eq!(find_windows_mkl_lib([dir.clone()]), Some(versioned));
+
+        let unversioned = dir.join("mkl_rt.dll");
+        std::fs::write(&unversioned, []).unwrap();
+        assert_eq!(find_windows_mkl_lib([dir.clone()]), Some(unversioned));
+
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+}
 fn get_mkl_library() -> Option<Library> {
     // Attempt to get the library path
     let lib_path = get_mkl_lib_path()?;
